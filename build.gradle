@@ -1,0 +1,19 @@
+plugins {
+    id 'java'
+}
+
+group 'csv2abo'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile group: 'org.apache.commons', name: 'commons-csv', version: '1.6'
+    compile group: 'commons-lang', name: 'commons-lang', version: '2.6'
+    compile group: 'com.massisframework', name: 'j-text-utils', version: '0.3.4'
+}
