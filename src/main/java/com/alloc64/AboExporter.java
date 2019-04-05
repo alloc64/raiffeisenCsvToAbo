@@ -15,7 +15,7 @@ public class AboExporter
     private static final SimpleDateFormat sdfFrom = new SimpleDateFormat("dd.MM.yyyy");
     private static final SimpleDateFormat sdfTO = new SimpleDateFormat("ddMMyy");
 
-    public void export(List<Vypis> list)
+    public void export(String file, List<Vypis> list)
     {
         float prichozi = 0;
         float odchozi = 0;
@@ -83,7 +83,7 @@ public class AboExporter
 
         System.out.println(sb.toString());
 
-        try (FileOutputStream stream = new FileOutputStream("dump.gpc"))
+        try (FileOutputStream stream = new FileOutputStream(file))
         {
             stream.write(sb.toString().getBytes("CP1250"));
         }
@@ -156,20 +156,35 @@ public class AboExporter
     {
         StringBuilder sb = new StringBuilder();
 
+        String currencyCode;
+
+        switch (vypis.getMenaUctu())
+        {
+            case "USD":
+                currencyCode = "00840";
+                break;
+
+            default:
+                currencyCode = "00203";
+                break;
+        }
+
+        boolean foreignCurrency = !"CZK".equals(vypis.getMenaUctu());
+
         sb.append("075");                                                                                       // Typ záznamu
         sb.append(convertFullAccountNumber(vypis.getCisloUctu()));                                              // Číslo účtu včetně předčíslí – doplněno vodicími nulami na 16 pozic
-        sb.append(convertFullAccountNumber(vypis.getCisloProtiuctu()));                                         // Číslo účtu protistrany – doplněno vodicími nulami na 16 pozic.
+        sb.append(convertFullAccountNumber(foreignCurrency ? "" : vypis.getCisloProtiuctu()));                                         // Číslo účtu protistrany – doplněno vodicími nulami na 16 pozic.
         sb.append(StringUtils.leftPad(vypis.getIdtransakce(), 13, "0"));                           // Identifikátor transakce na 13 pozic, přičemž: dont care
         sb.append(convertBalance(vypis.getZauctovanaCastka(), 12));                                          // Částka zaúčtované transakce – 14 číslic
         sb.append(getAccountingCode(vypis.getZauctovanaCastka(), vypis.getTypTransakce().contains("storno")));  // Kód účtování – 1 pro debetní (odchozí) položku, 2 pro kreditní (příchozí) položku, 4 pro storno debetní položky a 5 pro storno kreditní položky TODO: zde nevim zda to storno je ve vypisech RB
         sb.append(StringUtils.rightPad(vypis.getVs(), 10, "0"));                                   // Variabilní symbol – doplněn vodicími nulami na 10 pozic
         sb.append("00");                                                                                        // Oddělovač – vždy znaky 00
-        sb.append(getBankNo(vypis.getCisloProtiuctu()));                                                        // Kód banky protistrany (např. 0300)
+        sb.append(getBankNo(foreignCurrency ? "" : vypis.getCisloProtiuctu()));                                                        // Kód banky protistrany (např. 0300)
         sb.append(StringUtils.rightPad(vypis.getKs(), 4, "0"));                                    // Konstantní symbol – doplněn vodicími nulami na 4 pozice
         sb.append(StringUtils.rightPad(vypis.getSs(), 10, "0"));                                   // Specifický symbol – doplněn vodicími nulami na 10 pozic
         sb.append(convertDate(vypis.getDatumProvedeni()));                                                      // Datum valuty ve formátu DDMMRR (standardně shodné s datem zaúčtování)
-        sb.append(trimToChars(vypis.getZprava(), 19));                                                       // Název protistrany NEBO slovní popis položky
-        sb.append("00203");                                                                                     // Číselný kód měny - 00203 pro měnu CZK
+        sb.append(trimToChars(foreignCurrency ? vypis.getCisloProtiuctu() : (StringUtils.isEmpty(vypis.getZprava()) ? vypis.getPoznamka() : vypis.getZprava()), 20));                                                       // Název protistrany NEBO slovní popis položky
+        sb.append(currencyCode);                                                                                     // Číselný kód měny - 00203 pro měnu CZK
         sb.append(convertDate(vypis.getDatumProvedeni()));                                                      // Datum zaúčtování ve formátu DDMMRR
         sb.append("\r\n");
 

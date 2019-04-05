@@ -1,23 +1,26 @@
 package com.alloc64;
 
 import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class RaiffeisenBankCsvParser
 {
     public List<Vypis> parse(String filePath) throws IOException
     {
-        Reader in = new FileReader(filePath);
-
         CSVFormat csvFormat = CSVFormat.DEFAULT.withDelimiter(';');
 
-        Iterable<CSVRecord> records = csvFormat.parse(in);
+        Iterable<CSVRecord> records = CSVParser.parse(new File(filePath), Charset.forName("CP1250"), csvFormat);
 
         List<Vypis> list = new ArrayList<>();
 

@@ -9,9 +9,9 @@ public class Main
     {
         RaiffeisenBankCsvParser raiffeisenBankCsvParser = new RaiffeisenBankCsvParser();
 
-        List<Vypis> list = raiffeisenBankCsvParser.parse("2018.csv");
+        List<Vypis> list = raiffeisenBankCsvParser.parse("2019_USD.csv");
 
         AboExporter aboExporter = new AboExporter();
-        aboExporter.export(list);
+        aboExporter.export("2019_USD.gpc", list);
     }
 }
